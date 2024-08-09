@@ -43,7 +43,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: .net-app
-      
+
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -58,4 +58,3 @@ jobs:
           app-name: 'CabinLogsApi'
           slot-name: 'Production'
           package: .
-          
