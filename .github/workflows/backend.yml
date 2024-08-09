@@ -58,3 +58,11 @@ jobs:
           app-name: 'CabinLogsApi'
           slot-name: 'Production'
           package: .
+
+      - name: Apply database migrations
+        run: |
+          dotnet tool restore
+          dotnet ef database update --project CabinLogsApi/CabinLogsApi.csproj --context ApplicationDbContext
+        env:
+          ASPNETCORE_ENVIRONMENT: Production
+          CONNECTION_STRING: ${{ secrets.CONNECTION_STRING }}
