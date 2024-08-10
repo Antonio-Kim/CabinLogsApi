@@ -1,5 +1,7 @@
+using CabinLogsApi.Constants;
 using CabinLogsApi.DTO.Setting;
 using CabinLogsApi.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 
@@ -39,6 +41,7 @@ public class SettingsController : ControllerBase
     }
 
     [HttpPut(Name = "Update Settings")]
+    [Authorize(Roles = RoleNames.Administrator)]
     public async Task<IActionResult> UpdateSettings(Setting updatedSetting)
     {
         try

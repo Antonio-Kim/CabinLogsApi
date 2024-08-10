@@ -1,5 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using CabinLogsApi.Constants;
 using CabinLogsApi.DTO;
 using CabinLogsApi.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -17,18 +18,21 @@ public class AccountController : ControllerBase
     private readonly IConfiguration _configuration;
     private readonly UserManager<ApiUser> _userManager;
     private readonly SignInManager<ApiUser> _signInManager;
+    private readonly RoleManager<IdentityRole> _roleManager;
 
     public AccountController(
         ApplicationDbContext context,
         IConfiguration configuration,
         UserManager<ApiUser> userManager,
-        SignInManager<ApiUser> signInManager
+        SignInManager<ApiUser> signInManager,
+        RoleManager<IdentityRole> roleManager
     )
     {
         _context = context;
         _configuration = configuration;
         _userManager = userManager;
         _signInManager = signInManager;
+        _roleManager = roleManager;
     }
 
     [HttpPost]
@@ -52,6 +56,11 @@ public class AccountController : ControllerBase
 
                 if (result.Succeeded)
                 {
+                    if (!await _roleManager.RoleExistsAsync(RoleNames.User))
+                    {
+                        await _roleManager.CreateAsync(new IdentityRole(RoleNames.User));
+                    }
+                    await _userManager.AddToRoleAsync(newUser, RoleNames.User);
                     return StatusCode(201, $"User has been created.");
                 }
                 else
@@ -105,7 +114,7 @@ public class AccountController : ControllerBase
 
                     if (user.Email == null)
                     {
-                        throw new InvalidOperationException("Password is required.");
+                        throw new InvalidOperationException("Email is required.");
                     }
 
                     var claims = new List<Claim>()
@@ -113,7 +122,8 @@ public class AccountController : ControllerBase
                         new Claim(ClaimTypes.Email, user.Email),
                         new Claim(ClaimTypes.NameIdentifier, user.Id)
                     };
-                    claims.Add(new Claim(ClaimTypes.Email, user.Email));
+                    var roles = await _userManager.GetRolesAsync(user);
+                    claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
 
                     var jwtObject = new JwtSecurityToken(
                         issuer: _configuration["JWT:Issuer"],
@@ -167,7 +177,6 @@ public class AccountController : ControllerBase
                 return Unauthorized("User ID not found in token.");
             }
 
-            // Use UserManager to find the user by ID
             var user = await _userManager.FindByIdAsync(userId);
 
             if (user == null)
@@ -175,12 +184,15 @@ public class AccountController : ControllerBase
                 return NotFound("User not found.");
             }
 
+            var roles = await _userManager.GetRolesAsync(user);
+
             // Return user details
             var userInfo = new
             {
                 user.Id,
                 user.FullName,
-                user.Email
+                user.Email,
+                Roles = roles
             };
 
             return Ok(userInfo);

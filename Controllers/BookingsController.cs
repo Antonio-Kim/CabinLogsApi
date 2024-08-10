@@ -1,6 +1,8 @@
-﻿using CabinLogsApi.DTO.Bookings;
+﻿using CabinLogsApi.Constants;
+using CabinLogsApi.DTO.Bookings;
 using CabinLogsApi.DTO.Cabins;
 using CabinLogsApi.DTO.Guests;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Linq.Dynamic.Core;
 
@@ -180,6 +182,7 @@ public class BookingsController : ControllerBase
     }
 
     [HttpPatch("{id}", Name = "Updating booking")]
+    [Authorize(Roles = RoleNames.User)]
     public async Task<IActionResult> UpdateBooking(int id, [FromBody] UpdateBookingDTO updateStatus)
     {
         if (updateStatus == null)
@@ -260,6 +263,7 @@ public class BookingsController : ControllerBase
     }
 
     [HttpDelete("{id}", Name = "Delete booking")]
+    [Authorize(Roles = RoleNames.Administrator)]
     public async Task<IActionResult> DeleteBooking(int id)
     {
         try

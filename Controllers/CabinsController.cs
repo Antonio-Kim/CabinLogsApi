@@ -1,5 +1,7 @@
+using CabinLogsApi.Constants;
 using CabinLogsApi.DTO.Cabins;
 using CabinLogsApi.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 
@@ -68,6 +70,7 @@ public class CabinsController : ControllerBase
     }
 
     [HttpDelete("{id}", Name = "Remove a cabin")]
+    [Authorize(Roles = RoleNames.Administrator)]
     public async Task<IActionResult> DeleteCabin(int id)
     {
         try
@@ -86,6 +89,7 @@ public class CabinsController : ControllerBase
     }
 
     [HttpPost(Name = "Add a cabin")]
+    [Authorize(Roles = RoleNames.User)]
     public async Task<IActionResult> AddCabin([FromForm] CabinDTO cabin, IFormFile? image)
     {
         if (cabin == null)
@@ -136,6 +140,7 @@ public class CabinsController : ControllerBase
     }
 
     [HttpPut("{id}")]
+    [Authorize(Roles = RoleNames.Administrator)]
     public async Task<IActionResult> UpdateCabin(int id, [FromBody] Cabin updatedCabin)
     {
         if (updatedCabin == null)
