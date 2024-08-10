@@ -1,6 +1,10 @@
+using CabinLogsApi.Constants;
 using CabinLogsApi.Models;
+using CabinLogsApi.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
@@ -19,6 +23,8 @@ builder.Services.AddScoped<ICabinService, CabinService>();
 builder.Services.AddScoped<IGuestService, GuestService>();
 builder.Services.AddScoped<ISettingService, SettingService>();
 builder.Services.AddScoped<IBookingService, BookingService>();
+builder.Services.AddScoped<ISeedDataService, SeedDataService>();
+
 // Adding Identity service
 builder.Services.AddIdentity<ApiUser, IdentityRole>(options =>
 {
@@ -87,7 +93,30 @@ using (var scope = app.Services.CreateScope())
     db.Database.Migrate();
 }
 
-app.MapGet("/", () => "hello, world!");
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    await dbContext.Database.MigrateAsync();
+
+    var seedDataService = scope.ServiceProvider.GetRequiredService<ISeedDataService>();
+    await seedDataService.SeedRolesAsync();
+}
+
+app.MapGet("/auth/test/1",
+[Authorize(Roles = RoleNames.User)]
+[ResponseCache(NoStore = true)]
+() =>
+{
+    return Results.Ok("Hello, User!");
+});
+
+app.MapGet("/auth/test/2",
+[Authorize(Roles = RoleNames.Administrator)]
+[ResponseCache(NoStore = true)]
+() =>
+{
+    return Results.Ok("Hello, Administrator!");
+});
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
