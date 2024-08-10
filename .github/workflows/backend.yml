@@ -51,14 +51,6 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_1D01D05CB7874DE98B8EC71601A83E67 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_30620A5E42F54038ABE25F3B038E7F48 }}
 
-      - name: Set up .NET Core
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '8.x'
-
-      - name: Install EF Core tools
-        run: dotnet tool install --global dotnet-ef
-
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
@@ -66,11 +58,3 @@ jobs:
           app-name: 'CabinLogsApi'
           slot-name: 'Production'
           package: .
-
-      - name: Apply database migrations
-        run: |
-          dotnet tool restore
-          dotnet ef database update --project CabinLogsApi/CabinLogsApi.csproj --context ApplicationDbContext
-        env:
-          ASPNETCORE_ENVIRONMENT: Production
-          CONNECTION_STRING: ${{ secrets.CONNECTION_STRING }}
