@@ -10,6 +10,7 @@
 Migrations
 CabinLogs.db-shm
 CabinLogs.db-wal
+CabinLogsApi.generated.sln
 
 # static files
 # wwwroot
